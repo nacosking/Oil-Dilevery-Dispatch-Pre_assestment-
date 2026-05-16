@@ -2,13 +2,14 @@
 Task 1: Database access and layering
 """
 import sqlite3
-from contextdb import contextmanager
+from contextlib import contextmanager  # ✅ Fix 1: was 'contextdb'
 
-DB_Path = 'database.db'
+DB_PATH = 'delivery.db'  
+
 
 @contextmanager
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH)  
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     try:
@@ -34,10 +35,11 @@ def get_all_locations():
             ON l.id = r.from_id OR l.id = r.to_id
         GROUP BY l.id
         ORDER BY l.id
-    """'
+    """  
     with get_db() as conn:
         cursor = conn.execute(sql)
         return [dict(row) for row in cursor.fetchall()]
+
 
 def get_location_by_id(location_id: int):
     sql = "SELECT id, name, type FROM locations WHERE id = ?"
@@ -46,11 +48,13 @@ def get_location_by_id(location_id: int):
         row = cursor.fetchone()
         return dict(row) if row else None
 
+
 def get_depot():
     sql = "SELECT id, name, type FROM locations WHERE type = 'depot' LIMIT 1"
     with get_db() as conn:
         row = conn.execute(sql).fetchone()
         return dict(row) if row else None
+
 
 # Road queries
 def get_roads():
@@ -59,21 +63,23 @@ def get_roads():
         cursor = conn.execute(sql)
         return [dict(row) for row in cursor.fetchall()]
 
+
 # Delivery queries
-def create_delivery(customer_id:int , truck_plate:str):
+def create_delivery(customer_id: int, truck_plate: str):
     sql = """
         INSERT INTO deliveries (customer_id, truck_plate, status, departed_at)
         VALUES (?, ?, 'departed', datetime('now'))
     """
     with get_db() as conn:
         cursor = conn.execute(sql, (customer_id, truck_plate))
-        return cursor.lastrowid
+        return get_delivery_by_id(cursor.lastrowid, db=conn) 
+
 
 def get_delivery_by_id(delivery_id: int, *, db=None):
     sql = """
-        SELECT id, customer_id, truck_plate, status, departed_at, arrived_at,
+        SELECT id, customer_id, truck_plate, status, departed_at, arrived_at
         FROM deliveries WHERE id = ?
-    """
+    """  
     if db:
         cursor = db.execute(sql, (delivery_id,))
     else:
@@ -82,22 +88,26 @@ def get_delivery_by_id(delivery_id: int, *, db=None):
     row = cursor.fetchone()
     return dict(row) if row else None
 
+
 def mark_delivery_arrived(delivery_id: int):
     with get_db() as conn:
-        row = conn.execute("SELECT status FROM deliveries WHERE id = ?", (delivery_id,)).fetchone()
+        row = conn.execute(
+            "SELECT status FROM deliveries WHERE id = ?", (delivery_id,)
+        ).fetchone()
 
         if not row:
             return None, "not_found"
-        
-        if row['status'] == 'departed':
+
+        if row['status'] != 'departed':  
             return None, f"invalid_transition: cannot move '{row['status']}' to 'arrived'"
-        
+
         conn.execute("""
-            UPDATE deliveries SET status = 'arrived', 
-            arrived_at = datetime('now') 
+            UPDATE deliveries SET status = 'arrived',
+            arrived_at = datetime('now')
             WHERE id = ?
         """, (delivery_id,))
         return get_delivery_by_id(delivery_id, db=conn), None
+
 
 def get_delivery_summary():
     sql = """
@@ -112,5 +122,5 @@ def get_delivery_summary():
         GROUP BY l.id
         ORDER BY l.id
     """
-    with get_conn() as conn:
+    with get_db() as conn:  
         return [dict(row) for row in conn.execute(sql)]
