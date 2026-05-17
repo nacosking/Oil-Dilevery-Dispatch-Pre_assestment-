@@ -234,6 +234,18 @@ def unreachable_locations():
     result = [loc for loc in all_locs if loc["id"] in unreachable_ids]
     return jsonify(result), 200
 
+
+# ── Endpoint 6: GET /deliveries/summary ──────────────────────────────────────
+
+@app.get("/deliveries/summary")
+def delivery_summary():
+    """
+    Task 6: Per-customer delivery totals and most recent delivery date.
+    Backed by a single SQL aggregation query — no application-level loops.
+    """
+    summary = db.get_delivery_summary()
+    return jsonify(summary), 200
+
 # ── Run ───────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
