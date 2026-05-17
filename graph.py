@@ -8,7 +8,7 @@ from typing import Optional
 from db import get_roads
 
 
-# ── Task 2: Build the graph ───────────────────────────────────────────────────
+#Task 2: Build the graph 
 
 def build_graph() -> dict[int, list[tuple[int, float]]]:
     """
@@ -42,7 +42,7 @@ def build_graph() -> dict[int, list[tuple[int, float]]]:
     return graph
 
 
-# ── Task 3: Dijkstra ──────────────────────────────────────────────────────────
+# Task 3: Dijkstra
 
 def dijkstra(
     graph: dict[int, list[tuple[int, float]]],
@@ -93,7 +93,7 @@ def dijkstra(
     return None, None  # unreachable
 
 
-# ── Shared helpers ────────────────────────────────────────────────────────────
+# Shared helpers
 
 def _reconstruct_path(
     prev: dict[int, Optional[int]], target: int

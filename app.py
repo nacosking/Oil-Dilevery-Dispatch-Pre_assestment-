@@ -12,14 +12,14 @@ app = Flask(__name__)
 CORS(app)
 
 
-# ── Root: serve the dashboard UI ──────────────────────────────────────────────
+#Root: serve the dashboard UI
 
 @app.get("/")
 def index():
     return render_template("index.html")
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def get_graph():
     """Build a fresh graph from the DB for each request."""
@@ -32,7 +32,7 @@ def get_depot():
     return depot
 
 
-# ── Endpoint 1: GET /locations ────────────────────────────────────────────────
+#  Endpoint 1: GET /locations
 
 @app.get("/locations")
 def list_locations():
@@ -49,7 +49,7 @@ def list_locations():
     return jsonify(locations), 200
 
 
-# ── Endpoint 2: GET /route ────────────────────────────────────────────────────
+#  Endpoint 2: GET /route 
 
 @app.get("/route")
 def get_route():
@@ -122,7 +122,7 @@ def get_route():
     }), 200
 
 
-# ── Endpoint 3: POST /deliveries ──────────────────────────────────────────────
+#  Endpoint 3: POST /deliveries 
 
 @app.post("/deliveries")
 def create_delivery():
@@ -172,7 +172,7 @@ def create_delivery():
     return jsonify(delivery), 201
 
 
-# ── Endpoint 4: PATCH /deliveries/<id>/status ─────────────────────────────────
+#  Endpoint 4: PATCH /deliveries/<id>/status 
 
 @app.patch("/deliveries/<int:delivery_id>/status")
 def update_delivery_status(delivery_id: int):
@@ -208,7 +208,7 @@ def update_delivery_status(delivery_id: int):
 
 
 
-# ── Endpoint 5: GET /locations/unreachable ────────────────────────────────────
+#  Endpoint 5: GET /locations/unreachable 
 
 @app.get("/locations/unreachable")
 def unreachable_locations():
@@ -235,7 +235,7 @@ def unreachable_locations():
     return jsonify(result), 200
 
 
-# ── Endpoint 6: GET /deliveries/summary ──────────────────────────────────────
+#  Endpoint 6: GET /deliveries/summary 
 
 @app.get("/deliveries/summary")
 def delivery_summary():

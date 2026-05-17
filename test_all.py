@@ -42,7 +42,7 @@ passed = 0
 failed = 0
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# Helpers
 
 def check(label, condition):
     global passed, failed
@@ -276,10 +276,8 @@ if server_running:
     check("error message returned",        "error" in data)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Final summary
-# ─────────────────────────────────────────────────────────────────────────────
 
+# Final summary
 total = passed + failed
 print(f"\n{BOLD}{'=' * 55}{RESET}")
 print(f"{BOLD}  RESULTS: {GREEN}{passed} passed{RESET}{BOLD} / {RED}{failed} failed{RESET}{BOLD} / {total} total{RESET}")

@@ -487,7 +487,7 @@
   const BASE = 'http://localhost:5000'
   let allLocations = []
 
-  // ── Load locations on startup ──────────────────────────────────────────────
+  //  Load locations on startup 
 
   async function loadLocations() {
     const res  = await fetch(`${BASE}/locations`)
@@ -521,7 +521,7 @@
     toSel.value   = allLocations.find(l => l.type === 'customer')?.id || ''
   }
 
-  // ── Find route ─────────────────────────────────────────────────────────────
+  //  Find route 
 
   async function findRoute() {
     const from = document.getElementById('sel-from').value
@@ -585,7 +585,7 @@
     requestAnimationFrame(() => card.classList.add('visible'))
   }
 
-  // ── Log delivery ───────────────────────────────────────────────────────────
+  //  Log delivery 
 
   async function logDelivery() {
     const customer_id = parseInt(document.getElementById('del-customer').value)
@@ -608,7 +608,7 @@
     }
   }
 
-  // ── Toast helper ───────────────────────────────────────────────────────────
+  //  Toast helper 
 
   let toastTimer
   function showToast(type, title, msg) {
@@ -643,7 +643,7 @@
     `).join('')
   }
 
-  // ── Init ───────────────────────────────────────────────────────────────────
+  // Init 
   loadLocations()
   loadUnreachable()
 </script>
