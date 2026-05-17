@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oil Dispatch — Route Finder</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0a0a0a;
+      --panel:    #111111;
+      --border:   #222222;
+      --accent:   #f0a500;
+      --accent2:  #e05c00;
+      --danger:   #e03c3c;
+      --success:  #2ecc71;
+      --text:     #e8e8e8;
+      --muted:    #555555;
+      --mono:     'IBM Plex Mono', monospace;
+      --sans:     'IBM Plex Sans', sans-serif;
+      --display:  'Bebas Neue', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      background: var(--panel);
+    }
+
+    .logo {
+      font-family: var(--display);
+      font-size: 2rem;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .logo span { color: var(--text); }
+
+    .tagline {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      border-left: 2px solid var(--border);
+      padding-left: 1.5rem;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s ease-in-out infinite;
+      margin-left: auto;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Layout ── */
+    main {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: calc(100vh - 73px);
+    }
+
+    /* ── Sidebar ── */
+    aside {
+      border-right: 1px solid var(--border);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      background: var(--panel);
+    }
+
+    .section-label {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Route Finder Form ── */
+    .route-form { display: flex; flex-direction: column; gap: 1rem; }
+
+    .field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .field select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 2.5rem;
+    }
+
+    .field select:focus { border-color: var(--accent); }
+
+    .btn-find {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      font-family: var(--display);
+      font-size: 1.2rem;
+      letter-spacing: 0.1em;
+      padding: 0.85rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-find:hover { background: var(--accent2); }
+    .btn-find:active { transform: scale(0.98); }
+
+    /* ── Delivery Logger ── */
+    .delivery-form { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .field input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      outline: none;
+      transition: border-color 0.2s;
+      text-transform: uppercase;
+    }
+
+    .field input:focus { border-color: var(--accent); }
+    .field input::placeholder { color: var(--muted); text-transform: none; }
+
+    .btn-log {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      font-family: var(--display);
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-log:hover { background: var(--accent); color: #000; }
+
+    /* ── Main content ── */
+    .content {
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2.5rem;
+    }
+
+    /* ── Result card ── */
+    .result-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .result-card.visible { opacity: 1; transform: translateY(0); }
+
+    .result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      background: #161616;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .result-title {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .badge {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .badge.reachable   { background: rgba(46,204,113,0.15); color: var(--success); border: 1px solid rgba(46,204,113,0.3); }
+    .badge.unreachable { background: rgba(224,60,60,0.15);  color: var(--danger);  border: 1px solid rgba(224,60,60,0.3); }
+
+    .result-body { padding: 1.5rem; }
+
+    /* ── Path visualizer ── */
+    .path-display {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .path-node {
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.5rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--text);
+      animation: nodeIn 0.3s ease both;
+    }
+
+    .path-node.depot    { border-color: var(--accent);  color: var(--accent); }
+    .path-node.endpoint { border-color: var(--success); color: var(--success); }
+
+    .path-arrow {
+      color: var(--muted);
+      font-size: 0.9rem;
+      padding: 0 0.5rem;
+      animation: nodeIn 0.3s ease both;
+    }
+
+    @keyframes nodeIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .dist-display {
+      font-family: var(--display);
+      font-size: 3rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      line-height: 1;
+    }
+
+    .dist-display span {
+      font-family: var(--mono);
+      font-size: 1rem;
+      color: var(--muted);
+      margin-left: 0.5rem;
+    }
+
+    .no-route {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--danger);
+      padding: 1rem;
+      background: rgba(224,60,60,0.05);
+      border: 1px solid rgba(224,60,60,0.15);
+      border-radius: 4px;
+    }
+
+    /* ── Locations table ── */
+    .locations-grid {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .grid-header {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px 100px;
+      padding: 0.75rem 1.5rem;
+      background: #161616;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--muted);
+    }
+
+    .grid-row {
+      display: grid;
+      grid-template-columns: 60px 1fr 100px 100px;
+      padding: 0.75rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      align-items: center;
+      transition: background 0.15s;
+      cursor: pointer;
+    }
+
+    .grid-row:last-child { border-bottom: none; }
+    .grid-row:hover { background: #161616; }
+
+    .grid-row .id-cell { color: var(--muted); }
+
+    .type-tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .type-tag.depot    { background: rgba(240,165,0,0.15); color: var(--accent); }
+    .type-tag.customer { background: rgba(100,100,100,0.15); color: #888; }
+
+    .road-count { color: var(--text); }
+    .road-count.zero { color: var(--danger); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      padding: 1rem 1.5rem;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      max-width: 320px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.error { border-left-color: var(--danger); }
+    .toast.success { border-left-color: var(--success); }
+
+    .toast-title { color: var(--accent); font-weight: 500; margin-bottom: 0.25rem; }
+    .toast.error .toast-title { color: var(--danger); }
+    .toast.success .toast-title { color: var(--success); }
+
+    /* ── Loading ── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.5rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PETRO<span>DISPATCH</span></div>
+  <div class="tagline">Oil Delivery Routing System<br/>Dispatch Control v1.0</div>
+  <div class="status-dot" title="Server online"></div>
+</header>
+
+<main>
+  <!-- ── Sidebar ── -->
+  <aside>
+
+    <!-- Route Finder -->
+    <div>
+      <div class="section-label">// Route Finder</div>
+      <div class="route-form">
+        <div class="field">
+          <label>From</label>
+          <select id="sel-from"><option value="">Loading...</option></select>
+        </div>
+        <div class="field">
+          <label>To</label>
+          <select id="sel-to"><option value="">Loading...</option></select>
+        </div>
+        <button class="btn-find" onclick="findRoute()">FIND SHORTEST ROUTE</button>
+      </div>
+    </div>
+
+    <!-- Delivery Logger -->
+    <div>
+      <div class="section-label">// Log Departure</div>
+      <div class="delivery-form">
+        <div class="field">
+          <label>Customer</label>
+          <select id="del-customer"><option value="">Loading...</option></select>
+        </div>
+        <div class="field">
+          <label>Truck Plate</label>
+          <input id="del-plate" type="text" placeholder="e.g. WB5678C" maxlength="12"/>
+        </div>
+        <button class="btn-log" onclick="logDelivery()">LOG DEPARTURE</button>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main content ── -->
+  <div class="content">
+
+    <!-- Route result -->
+    <div id="route-result" class="result-card"></div>
+
+    <!-- Locations table -->
+    <div>
+      <div class="section-label">// All Locations</div>
+      <div class="locations-grid">
+        <div class="grid-header">
+          <div>ID</div><div>Name</div><div>Type</div><div>Roads</div>
+        </div>
+        <div id="locations-body">
+          <div style="padding:1.5rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted);">
+            <span class="spinner"></span> Loading locations...
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Unreachable locations -->
+    <div>
+      <div class="section-label">// Unreachable Customers <span style="color:var(--danger);margin-left:0.5rem" id="unreachable-count"></span></div>
+      <div class="locations-grid">
+        <div class="grid-header">
+          <div>ID</div><div>Name</div><div>Type</div><div>Roads</div>
+        </div>
+        <div id="unreachable-body">
+          <div style="padding:1.5rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted);">
+            <span class="spinner"></span> Loading...
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title"></div>
+  <div id="toast-msg"></div>
+</div>
+
+<script>
+  const BASE = 'http://localhost:5000'
+  let allLocations = []
+
+  // ── Load locations on startup ──────────────────────────────────────────────
+
+  async function loadLocations() {
+    const res  = await fetch(`${BASE}/locations`)
+    allLocations = await res.json()
+
+    // Populate table
+    const body = document.getElementById('locations-body')
+    body.innerHTML = allLocations.map(loc => `
+      <div class="grid-row" onclick="quickRoute(${loc.id})">
+        <div class="id-cell">${loc.id}</div>
+        <div>${loc.name}</div>
+        <div><span class="type-tag ${loc.type}">${loc.type}</span></div>
+        <div class="road-count ${loc.road_count === 0 ? 'zero' : ''}">${loc.road_count}</div>
+      </div>
+    `).join('')
+
+    // Populate From/To selects
+    const fromSel     = document.getElementById('sel-from')
+    const toSel       = document.getElementById('sel-to')
+    const customerSel = document.getElementById('del-customer')
+
+    fromSel.innerHTML     = allLocations.map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`).join('')
+    toSel.innerHTML       = allLocations.map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`).join('')
+    customerSel.innerHTML = allLocations
+      .filter(l => l.type === 'customer')
+      .map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`)
+      .join('')
+
+    // Default to depot → first customer
+    fromSel.value = allLocations.find(l => l.type === 'depot')?.id || ''
+    toSel.value   = allLocations.find(l => l.type === 'customer')?.id || ''
+  }
+
+  // ── Find route ─────────────────────────────────────────────────────────────
+
+  async function findRoute() {
+    const from = document.getElementById('sel-from').value
+    const to   = document.getElementById('sel-to').value
+    if (!from || !to) return
+
+    const btn = document.querySelector('.btn-find')
+    btn.innerHTML = '<span class="spinner"></span> SEARCHING...'
+    btn.disabled = true
+
+    const res  = await fetch(`${BASE}/route?from=${from}&to=${to}`)
+    const data = await res.json()
+
+    btn.innerHTML = 'FIND SHORTEST ROUTE'
+    btn.disabled = false
+
+    renderRouteResult(data)
+  }
+
+  function quickRoute(toId) {
+    const depot = allLocations.find(l => l.type === 'depot')
+    if (!depot) return
+    document.getElementById('sel-from').value = depot.id
+    document.getElementById('sel-to').value   = toId
+    findRoute()
+  }
+
+  function renderRouteResult(data) {
+    const card = document.getElementById('route-result')
+    card.classList.remove('visible')
+
+    if (!data.reachable) {
+      card.innerHTML = `
+        <div class="result-header">
+          <div class="result-title">${data.from.name} → ${data.to.name}</div>
+          <span class="badge unreachable">Unreachable</span>
+        </div>
+        <div class="result-body">
+          <div class="no-route">⚠ No road path exists from ${data.from.name} to ${data.to.name}.<br/>This customer cannot be served from the depot.</div>
+        </div>
+      `
+    } else {
+      const pathHtml = data.path.map((node, i) => {
+        const cls = i === 0 ? 'depot' : i === data.path.length - 1 ? 'endpoint' : ''
+        const arrow = i < data.path.length - 1 ? '<div class="path-arrow" style="animation-delay:' + (i * 0.08) + 's">→</div>' : ''
+        return `<div class="path-node ${cls}" style="animation-delay:${i * 0.08}s">${node.name}</div>${arrow}`
+      }).join('')
+
+      card.innerHTML = `
+        <div class="result-header">
+          <div class="result-title">${data.from.name} → ${data.to.name}</div>
+          <span class="badge reachable">Reachable</span>
+        </div>
+        <div class="result-body">
+          <div class="path-display">${pathHtml}</div>
+          <div class="dist-display">${data.total_distance_km}<span>km total</span></div>
+        </div>
+      `
+    }
+
+    requestAnimationFrame(() => card.classList.add('visible'))
+  }
+
+  // ── Log delivery ───────────────────────────────────────────────────────────
+
+  async function logDelivery() {
+    const customer_id = parseInt(document.getElementById('del-customer').value)
+    const truck_plate = document.getElementById('del-plate').value.trim()
+
+    if (!truck_plate) { showToast('error', 'Missing Field', 'Please enter a truck plate.'); return }
+
+    const res  = await fetch(`${BASE}/deliveries`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ customer_id, truck_plate })
+    })
+    const data = await res.json()
+
+    if (res.status === 201) {
+      showToast('success', 'Departure Logged', `Truck ${data.truck_plate} dispatched. Delivery ID: ${data.id}`)
+      document.getElementById('del-plate').value = ''
+    } else {
+      showToast('error', 'Failed', data.error)
+    }
+  }
+
+  // ── Toast helper ───────────────────────────────────────────────────────────
+
+  let toastTimer
+  function showToast(type, title, msg) {
+    const toast = document.getElementById('toast')
+    toast.className = `toast ${type}`
+    document.getElementById('toast-title').textContent = title
+    document.getElementById('toast-msg').textContent   = msg
+    toast.classList.add('show')
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 4000)
+  }
+
+
+  async function loadUnreachable() {
+    const res  = await fetch(`${BASE}/locations/unreachable`)
+    const data = await res.json()
+
+    document.getElementById('unreachable-count').textContent = `(${data.length} found)`
+
+    const body = document.getElementById('unreachable-body')
+    if (data.length === 0) {
+      body.innerHTML = '<div style="padding:1.5rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted);">All customers are reachable.</div>'
+      return
+    }
+    body.innerHTML = data.map(loc => `
+      <div class="grid-row">
+        <div class="id-cell">${loc.id}</div>
+        <div style="color:var(--danger)">${loc.name}</div>
+        <div><span class="type-tag customer">${loc.type}</span></div>
+        <div class="road-count">${loc.road_count}</div>
+      </div>
+    `).join('')
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadLocations()
+  loadUnreachable()
+</script>
+</body>
+</html>
