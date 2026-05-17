@@ -1,0 +1,130 @@
+### Oil Delivery Dispatch API
+### Use with the VS Code REST Client extension
+### Install: Extensions → search "REST Client" by Huachao Mao
+
+@base = http://localhost:5000
+
+# LOCATIONS
+### Get all locations
+GET {{base}}/locations
+Accept: application/json
+
+###
+### Get unreachable customers [Task 5]
+GET {{base}}/locations/unreachable
+Accept: application/json
+
+
+# ROUTE
+### Shortest route — reachable (Depot → Cyberjaya)
+# Expected: path via Subang Jaya (3), total 40.5 km, reachable: true
+GET {{base}}/route?from=1&to=7
+Accept: application/json
+
+### Shortest route — reachable (Depot → Gombak)
+# Expected: direct path, total 15.8 km, reachable: true
+GET {{base}}/route?from=1&to=9
+Accept: application/json
+
+### Shortest route — unreachable customer
+# Expected: HTTP 200, reachable: false, path: [], total_distance_km: null
+GET {{base}}/route?from=1&to=11
+Accept: application/json
+
+### Shortest route — missing param (400)
+# Expected: HTTP 400 — 'to' param is missing
+GET {{base}}/route?from=1
+Accept: application/json
+
+### Shortest route — invalid param (400)
+# Expected: HTTP 400 — 'from' is not a valid integer
+GET {{base}}/route?from=abc&to=7
+Accept: application/json
+
+### Shortest route — location not found (404)
+# Expected: HTTP 404 — location id=999 does not exist
+GET {{base}}/route?from=1&to=999
+Accept: application/json
+
+# DELIVERIES
+### Log delivery — valid customer (201)
+# Expected: HTTP 201, status: departed, arrived_at: null
+POST {{base}}/deliveries
+Content-Type: application/json
+
+{
+  "customer_id": 7,
+  "truck_plate": "WB5678C"
+}
+
+### Log delivery — unreachable customer (400)
+# Expected: HTTP 400 — customer is unreachable from depot
+POST {{base}}/deliveries
+Content-Type: application/json
+
+{
+  "customer_id": 11,
+  "truck_plate": "WB5678C"
+}
+
+### Log delivery — depot as customer (400)
+# Expected: HTTP 400 — id=1 is a depot, not a customer
+POST {{base}}/deliveries
+Content-Type: application/json
+
+{
+  "customer_id": 1,
+  "truck_plate": "WB5678C"
+}
+
+### Log delivery — missing truck plate (400)
+# Expected: HTTP 400 — truck_plate is empty
+POST {{base}}/deliveries
+Content-Type: application/json
+
+{
+  "customer_id": 7,
+  "truck_plate": ""
+}
+
+### Mark as arrived — valid transition (200)
+# Expected: HTTP 200, status: arrived, arrived_at is set
+# Change the ID to a departed delivery in your database
+PATCH {{base}}/deliveries/1/status
+Content-Type: application/json
+
+{
+  "status": "arrived"
+}
+
+### Mark as arrived — already arrived (422)
+# Expected: HTTP 422 — delivery already arrived, invalid transition
+PATCH {{base}}/deliveries/1/status
+Content-Type: application/json
+
+{
+  "status": "arrived"
+}
+
+### Mark as arrived — invalid status (422)
+# Expected: HTTP 422 — only 'arrived' is accepted
+PATCH {{base}}/deliveries/1/status
+Content-Type: application/json
+
+{
+  "status": "departed"
+}
+
+### Mark as arrived — not found (404)
+# Expected: HTTP 404 — delivery id=9999 not found
+PATCH {{base}}/deliveries/9999/status
+Content-Type: application/json
+
+{
+  "status": "arrived"
+}
+
+### Delivery summary [Task 6]
+# Returns per-customer delivery totals and most recent delivery date
+GET {{base}}/deliveries/summary
+Accept: application/json

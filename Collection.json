@@ -1,0 +1,266 @@
+{
+  "info": {
+    "name": "Oil Delivery Dispatch API",
+    "description": "REST API for oil tanker dispatch system. Finds shortest routes using Dijkstra's algorithm and manages delivery records.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:5000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "Get all locations",
+          "request": {
+            "method": "GET",
+            "url": "{{base}}/locations",
+            "description": "Returns all locations with their type and direct road connection count."
+          }
+        },
+        {
+          "name": "Get unreachable customers [Task 5]",
+          "request": {
+            "method": "GET",
+            "url": "{{base}}/locations/unreachable",
+            "description": "Returns all customers with no road path to the depot. Uses graph algorithm, not SQL."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Route",
+      "item": [
+        {
+          "name": "Shortest route — reachable (Depot → Cyberjaya)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base}}/route?from=1&to=7",
+              "query": [
+                { "key": "from", "value": "1" },
+                { "key": "to",   "value": "7" }
+              ]
+            },
+            "description": "Expected: path via Subang Jaya (3), total 40.5 km, reachable: true"
+          }
+        },
+        {
+          "name": "Shortest route — reachable (Depot → Gombak)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base}}/route?from=1&to=9",
+              "query": [
+                { "key": "from", "value": "1" },
+                { "key": "to",   "value": "9" }
+              ]
+            },
+            "description": "Expected: direct path, total 15.8 km, reachable: true"
+          }
+        },
+        {
+          "name": "Shortest route — unreachable customer",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base}}/route?from=1&to=11",
+              "query": [
+                { "key": "from", "value": "1" },
+                { "key": "to",   "value": "11" }
+              ]
+            },
+            "description": "Expected: HTTP 200, reachable: false, path: [], total_distance_km: null"
+          }
+        },
+        {
+          "name": "Shortest route — missing param (400)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base}}/route?from=1",
+              "query": [
+                { "key": "from", "value": "1" }
+              ]
+            },
+            "description": "Expected: HTTP 400 — 'to' param is missing"
+          }
+        },
+        {
+          "name": "Shortest route — invalid param (400)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base}}/route?from=abc&to=7",
+              "query": [
+                { "key": "from", "value": "abc" },
+                { "key": "to",   "value": "7" }
+              ]
+            },
+            "description": "Expected: HTTP 400 — 'from' is not a valid integer"
+          }
+        },
+        {
+          "name": "Shortest route — location not found (404)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base}}/route?from=1&to=999",
+              "query": [
+                { "key": "from", "value": "1" },
+                { "key": "to",   "value": "999" }
+              ]
+            },
+            "description": "Expected: HTTP 404 — location id=999 does not exist"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deliveries",
+      "item": [
+        {
+          "name": "Log delivery — valid customer (201)",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/deliveries",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 7,\n  \"truck_plate\": \"WB5678C\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 201, status: departed, arrived_at: null"
+          }
+        },
+        {
+          "name": "Log delivery — unreachable customer (400)",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/deliveries",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 11,\n  \"truck_plate\": \"WB5678C\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 400 — customer is unreachable from depot"
+          }
+        },
+        {
+          "name": "Log delivery — depot as customer (400)",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/deliveries",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 1,\n  \"truck_plate\": \"WB5678C\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 400 — id=1 is a depot, not a customer"
+          }
+        },
+        {
+          "name": "Log delivery — missing truck plate (400)",
+          "request": {
+            "method": "POST",
+            "url": "{{base}}/deliveries",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customer_id\": 7,\n  \"truck_plate\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 400 — truck_plate is empty"
+          }
+        },
+        {
+          "name": "Mark as arrived — valid transition (200)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base}}/deliveries/1/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"arrived\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 200, status: arrived, arrived_at is set. Change ID to a departed delivery."
+          }
+        },
+        {
+          "name": "Mark as arrived — already arrived (422)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base}}/deliveries/1/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"arrived\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 422 — delivery already arrived, invalid transition"
+          }
+        },
+        {
+          "name": "Mark as arrived — invalid status (422)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base}}/deliveries/1/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"departed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 422 — only 'arrived' is accepted"
+          }
+        },
+        {
+          "name": "Mark as arrived — not found (404)",
+          "request": {
+            "method": "PATCH",
+            "url": "{{base}}/deliveries/9999/status",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"arrived\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Expected: HTTP 404 — delivery id=9999 not found"
+          }
+        },
+        {
+          "name": "Delivery summary [Task 6]",
+          "request": {
+            "method": "GET",
+            "url": "{{base}}/deliveries/summary",
+            "description": "Returns per-customer delivery totals and most recent delivery date. Single SQL aggregation."
+          }
+        }
+      ]
+    }
+  ]
+}
