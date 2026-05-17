@@ -4,21 +4,24 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Oil Dispatch — Route Finder</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --bg:       #0a0a0a;
-      --panel:    #111111;
-      --border:   #222222;
-      --accent:   #f0a500;
-      --accent2:  #e05c00;
-      --danger:   #e03c3c;
-      --success:  #2ecc71;
-      --text:     #e8e8e8;
-      --muted:    #555555;
-      --mono:     'IBM Plex Mono', monospace;
-      --sans:     'IBM Plex Sans', sans-serif;
-      --display:  'Bebas Neue', sans-serif;
+      --bg:        #f5f5f5;
+      --panel:     #ffffff;
+      --border:    #e0e0e0;
+      --border2:   #ebebeb;
+      --accent:    #e65c00;
+      --accent2:   #bf4600;
+      --danger:    #d32f2f;
+      --success:   #2e7d32;
+      --warning:   #f57c00;
+      --text:      #1a1a1a;
+      --text2:     #555555;
+      --muted:     #999999;
+      --blue:      #1565c0;
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'Inter', sans-serif;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,375 +31,499 @@
       color: var(--text);
       font-family: var(--sans);
       min-height: 100vh;
-      overflow-x: hidden;
+      font-size: 14px;
     }
 
     /* ── Header ── */
     header {
+      background: var(--panel);
       border-bottom: 1px solid var(--border);
-      padding: 1.5rem 2.5rem;
+      padding: 0 2rem;
+      height: 60px;
       display: flex;
       align-items: center;
-      gap: 1.5rem;
-      background: var(--panel);
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
 
     .logo {
-      font-family: var(--display);
-      font-size: 2rem;
-      letter-spacing: 0.05em;
-      color: var(--accent);
-      line-height: 1;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    .logo span { color: var(--text); }
+    .logo-icon {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
 
-    .tagline {
-      font-family: var(--mono);
-      font-size: 0.7rem;
+    .logo-sub {
+      font-size: 0.75rem;
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      border-left: 2px solid var(--border);
-      padding-left: 1.5rem;
+      font-weight: 400;
+      margin-left: 0.25rem;
+    }
+
+    .status-pill {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--success);
+      background: rgba(46,125,50,0.08);
+      border: 1px solid rgba(46,125,50,0.2);
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
     }
 
     .status-dot {
-      width: 8px; height: 8px;
+      width: 6px; height: 6px;
       border-radius: 50%;
       background: var(--success);
-      box-shadow: 0 0 8px var(--success);
       animation: pulse 2s ease-in-out infinite;
-      margin-left: auto;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
     /* ── Layout ── */
     main {
       display: grid;
-      grid-template-columns: 380px 1fr;
-      min-height: calc(100vh - 73px);
+      grid-template-columns: 320px 1fr;
+      min-height: calc(100vh - 60px);
     }
 
     /* ── Sidebar ── */
     aside {
+      background: var(--panel);
       border-right: 1px solid var(--border);
-      padding: 2rem;
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 2rem;
-      background: var(--panel);
+      gap: 1.5rem;
+      overflow-y: auto;
     }
 
-    .section-label {
-      font-family: var(--mono);
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-      color: var(--muted);
-      margin-bottom: 1rem;
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
     }
 
-    /* ── Route Finder Form ── */
-    .route-form { display: flex; flex-direction: column; gap: 1rem; }
-
-    .field label {
-      display: block;
-      font-family: var(--mono);
+    .card-header {
+      padding: 0.75rem 1rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
       font-size: 0.7rem;
-      color: var(--muted);
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 0.5rem;
+      letter-spacing: 0.08em;
+      color: var(--text2);
     }
 
-    .field select {
+    .card-body { padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+
+    /* ── Form elements ── */
+    label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--text2);
+      margin-bottom: 0.35rem;
+    }
+
+    select, input {
       width: 100%;
-      background: var(--bg);
+      background: var(--panel);
       border: 1px solid var(--border);
       color: var(--text);
-      font-family: var(--mono);
+      font-family: var(--sans);
       font-size: 0.85rem;
-      padding: 0.75rem 1rem;
-      border-radius: 4px;
+      padding: 0.6rem 0.85rem;
+      border-radius: 6px;
       outline: none;
-      cursor: pointer;
-      transition: border-color 0.2s;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(230,92,0,0.1);
+    }
+
+    select {
       appearance: none;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23555' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 1rem center;
+      background-position: right 0.85rem center;
       padding-right: 2.5rem;
-    }
-
-    .field select:focus { border-color: var(--accent); }
-
-    .btn-find {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      font-family: var(--display);
-      font-size: 1.2rem;
-      letter-spacing: 0.1em;
-      padding: 0.85rem 1.5rem;
-      border-radius: 4px;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      margin-top: 0.5rem;
     }
 
-    .btn-find:hover { background: var(--accent2); }
-    .btn-find:active { transform: scale(0.98); }
+    input::placeholder { color: var(--muted); }
 
-    /* ── Delivery Logger ── */
-    .delivery-form { display: flex; flex-direction: column; gap: 0.75rem; }
+    .plate-row {
+      display: flex;
+      gap: 0.5rem;
+    }
 
-    .field input {
+    .plate-row select { flex: 1; }
+
+    .plate-or {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin: 0.25rem 0;
+    }
+
+    .plate-or::before, .plate-or::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .btn {
       width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--mono);
+      padding: 0.65rem 1rem;
+      border-radius: 6px;
+      border: none;
+      font-family: var(--sans);
       font-size: 0.85rem;
-      padding: 0.75rem 1rem;
-      border-radius: 4px;
-      outline: none;
-      transition: border-color 0.2s;
-      text-transform: uppercase;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
     }
 
-    .field input:focus { border-color: var(--accent); }
-    .field input::placeholder { color: var(--muted); text-transform: none; }
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
 
-    .btn-log {
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .btn-outline {
       background: transparent;
       color: var(--accent);
       border: 1px solid var(--accent);
-      font-family: var(--display);
-      font-size: 1.1rem;
-      letter-spacing: 0.1em;
-      padding: 0.75rem 1.5rem;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
     }
 
-    .btn-log:hover { background: var(--accent); color: #000; }
+    .btn-outline:hover { background: rgba(230,92,0,0.06); }
 
     /* ── Main content ── */
     .content {
-      padding: 2.5rem;
+      padding: 1.5rem;
       display: flex;
       flex-direction: column;
-      gap: 2.5rem;
+      gap: 1.5rem;
+      overflow-y: auto;
     }
 
     /* ── Result card ── */
     .result-card {
+      background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
-      opacity: 0;
-      transform: translateY(12px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
+      transition: opacity 0.25s ease, transform 0.25s ease;
     }
 
-    .result-card.visible { opacity: 1; transform: translateY(0); }
+    .result-placeholder {
+      padding: 2.5rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .result-placeholder .placeholder-icon {
+      font-size: 2rem;
+      margin-bottom: 0.25rem;
+      opacity: 0.4;
+    }
+
+    .result-placeholder p {
+      font-size: 0.82rem;
+    }
 
     .result-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1rem 1.5rem;
-      background: #161616;
+      padding: 0.85rem 1.25rem;
       border-bottom: 1px solid var(--border);
+      background: var(--bg);
     }
 
     .result-title {
-      font-family: var(--display);
-      font-size: 1.1rem;
-      letter-spacing: 0.08em;
-      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
     }
 
     .badge {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      padding: 0.3rem 0.75rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.25rem 0.65rem;
       border-radius: 20px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
     }
 
-    .badge.reachable   { background: rgba(46,204,113,0.15); color: var(--success); border: 1px solid rgba(46,204,113,0.3); }
-    .badge.unreachable { background: rgba(224,60,60,0.15);  color: var(--danger);  border: 1px solid rgba(224,60,60,0.3); }
+    .badge.reachable   { background: rgba(46,125,50,0.1);  color: var(--success); border: 1px solid rgba(46,125,50,0.25); }
+    .badge.unreachable { background: rgba(211,47,47,0.1);  color: var(--danger);  border: 1px solid rgba(211,47,47,0.25); }
 
-    .result-body { padding: 1.5rem; }
+    .result-body { padding: 1.25rem; }
 
-    /* ── Path visualizer ── */
     .path-display {
       display: flex;
       align-items: center;
       flex-wrap: wrap;
       gap: 0;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.25rem;
     }
 
     .path-node {
-      background: #1a1a1a;
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      padding: 0.4rem 0.85rem;
       font-family: var(--mono);
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--text);
-      animation: nodeIn 0.3s ease both;
+      animation: nodeIn 0.25s ease both;
     }
 
-    .path-node.depot    { border-color: var(--accent);  color: var(--accent); }
-    .path-node.endpoint { border-color: var(--success); color: var(--success); }
+    .path-node.depot    { border-color: var(--accent); color: var(--accent); background: rgba(230,92,0,0.05); }
+    .path-node.endpoint { border-color: var(--success); color: var(--success); background: rgba(46,125,50,0.05); }
 
     .path-arrow {
       color: var(--muted);
-      font-size: 0.9rem;
-      padding: 0 0.5rem;
-      animation: nodeIn 0.3s ease both;
+      font-size: 0.8rem;
+      padding: 0 0.4rem;
     }
 
     @keyframes nodeIn {
-      from { opacity: 0; transform: translateX(-8px); }
+      from { opacity: 0; transform: translateX(-6px); }
       to   { opacity: 1; transform: translateX(0); }
     }
 
     .dist-display {
-      font-family: var(--display);
-      font-size: 3rem;
+      font-size: 3.5rem;
+      font-weight: 300;
       color: var(--accent);
-      letter-spacing: 0.05em;
+      letter-spacing: -0.03em;
       line-height: 1;
     }
 
     .dist-display span {
-      font-family: var(--mono);
       font-size: 1rem;
       color: var(--muted);
-      margin-left: 0.5rem;
+      font-weight: 400;
+      margin-left: 0.4rem;
+    }
+
+    .path-meta {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .path-stops {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
     }
 
     .no-route {
-      font-family: var(--mono);
       font-size: 0.85rem;
       color: var(--danger);
-      padding: 1rem;
-      background: rgba(224,60,60,0.05);
-      border: 1px solid rgba(224,60,60,0.15);
-      border-radius: 4px;
+      padding: 0.85rem 1rem;
+      background: rgba(211,47,47,0.05);
+      border: 1px solid rgba(211,47,47,0.15);
+      border-radius: 6px;
+      line-height: 1.5;
     }
 
-    /* ── Locations table ── */
-    .locations-grid {
+    /* ── Section title ── */
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text2);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
     }
 
-    .grid-header {
+    .table-head {
       display: grid;
-      grid-template-columns: 60px 1fr 100px 100px;
-      padding: 0.75rem 1.5rem;
-      background: #161616;
+      padding: 0.65rem 1.25rem;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
-      font-family: var(--mono);
-      font-size: 0.65rem;
+      font-size: 0.68rem;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.15em;
+      letter-spacing: 0.08em;
       color: var(--muted);
     }
 
-    .grid-row {
+    .table-head.cols-4, .table-row.cols-4 {
+      grid-template-columns: 50px 1fr 100px 80px;
+    }
+
+    .table-head.cols-summary, .table-row.cols-summary {
+      grid-template-columns: 50px 1fr 130px 180px;
+    }
+
+    .table-row {
       display: grid;
-      grid-template-columns: 60px 1fr 100px 100px;
-      padding: 0.75rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      font-family: var(--mono);
-      font-size: 0.8rem;
+      padding: 0.65rem 1.25rem;
+      border-bottom: 1px solid var(--border2);
+      font-size: 0.82rem;
       align-items: center;
-      transition: background 0.15s;
+      transition: background 0.1s;
       cursor: pointer;
     }
 
-    .grid-row:last-child { border-bottom: none; }
-    .grid-row:hover { background: #161616; }
+    .table-row:last-child { border-bottom: none; }
+    .table-row:hover { background: #fafafa; }
 
-    .grid-row .id-cell { color: var(--muted); }
+    .id-cell { color: var(--muted); font-family: var(--mono); font-size: 0.75rem; }
 
     .type-tag {
       display: inline-block;
       font-size: 0.65rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 3px;
+      font-weight: 600;
+      padding: 0.18rem 0.5rem;
+      border-radius: 4px;
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.05em;
     }
 
-    .type-tag.depot    { background: rgba(240,165,0,0.15); color: var(--accent); }
-    .type-tag.customer { background: rgba(100,100,100,0.15); color: #888; }
+    .type-tag.depot    { background: rgba(230,92,0,0.1);   color: var(--accent); }
+    .type-tag.customer { background: rgba(21,101,192,0.1); color: var(--blue); }
 
-    .road-count { color: var(--text); }
-    .road-count.zero { color: var(--danger); }
+    .road-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 20px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      font-family: var(--mono);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    .road-pill.zero { background: rgba(211,47,47,0.08); border-color: rgba(211,47,47,0.2); color: var(--danger); }
+
+    .danger-text { color: var(--danger); font-weight: 500; }
+
+    .delivery-count {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .delivery-count.zero { color: var(--muted); font-weight: 400; }
+
+    .date-text {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
 
     /* ── Toast ── */
     .toast {
       position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      background: #1a1a1a;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--panel);
       border: 1px solid var(--border);
       border-left: 3px solid var(--accent);
-      padding: 1rem 1.5rem;
-      border-radius: 4px;
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      max-width: 320px;
-      transform: translateY(100px);
+      padding: 0.85rem 1.25rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      max-width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(80px);
       opacity: 0;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
       z-index: 100;
     }
 
     .toast.show { transform: translateY(0); opacity: 1; }
-    .toast.error { border-left-color: var(--danger); }
+    .toast.error   { border-left-color: var(--danger); }
     .toast.success { border-left-color: var(--success); }
 
-    .toast-title { color: var(--accent); font-weight: 500; margin-bottom: 0.25rem; }
-    .toast.error .toast-title { color: var(--danger); }
-    .toast.success .toast-title { color: var(--success); }
+    .toast-title { font-weight: 600; margin-bottom: 0.2rem; color: var(--text); }
+    .toast-msg   { color: var(--text2); }
 
-    /* ── Loading ── */
+    /* ── Spinner ── */
     .spinner {
       display: inline-block;
-      width: 14px; height: 14px;
+      width: 13px; height: 13px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
       vertical-align: middle;
-      margin-right: 0.5rem;
+      margin-right: 0.4rem;
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-row {
+      padding: 1.25rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">PETRO<span>DISPATCH</span></div>
-  <div class="tagline">Oil Delivery Routing System<br/>Dispatch Control v1.0</div>
-  <div class="status-dot" title="Server online"></div>
+  <div class="logo">
+    <div class="logo-icon">OD</div>
+    PetroDispatch
+    <span class="logo-sub">Oil Delivery System</span>
+  </div>
+  <div class="status-pill">
+    <div class="status-dot"></div>
+    Server Online
+  </div>
 </header>
 
 <main>
@@ -404,72 +531,99 @@
   <aside>
 
     <!-- Route Finder -->
-    <div>
-      <div class="section-label">// Route Finder</div>
-      <div class="route-form">
-        <div class="field">
+    <div class="card">
+      <div class="card-header">Route Finder</div>
+      <div class="card-body">
+        <div>
           <label>From</label>
           <select id="sel-from"><option value="">Loading...</option></select>
         </div>
-        <div class="field">
+        <div>
           <label>To</label>
           <select id="sel-to"><option value="">Loading...</option></select>
         </div>
-        <button class="btn-find" onclick="findRoute()">FIND SHORTEST ROUTE</button>
+        <button class="btn btn-primary" onclick="findRoute()">Find Shortest Route</button>
       </div>
     </div>
 
-    <!-- Delivery Logger -->
-    <div>
-      <div class="section-label">// Log Departure</div>
-      <div class="delivery-form">
-        <div class="field">
+    <!-- Log Departure -->
+    <div class="card">
+      <div class="card-header">Log Departure</div>
+      <div class="card-body">
+        <div>
           <label>Customer</label>
           <select id="del-customer"><option value="">Loading...</option></select>
         </div>
-        <div class="field">
+
+        <div>
           <label>Truck Plate</label>
-          <input id="del-plate" type="text" placeholder="e.g. WB5678C" maxlength="12"/>
+          <select id="del-plate-select">
+            <option value="">Loading plates...</option>
+          </select>
         </div>
-        <button class="btn-log" onclick="logDelivery()">LOG DEPARTURE</button>
+
+        <div class="plate-or">or enter a new plate</div>
+
+        <div>
+          <input id="del-plate-input" type="text" placeholder="e.g. WB5678C" maxlength="12" style="text-transform:uppercase"/>
+        </div>
+
+        <button class="btn btn-outline" onclick="logDelivery()">Log Departure</button>
       </div>
     </div>
 
   </aside>
 
-  <!-- ── Main content ── -->
+  <!-- ── Content ── -->
   <div class="content">
 
     <!-- Route result -->
-    <div id="route-result" class="result-card"></div>
+    <div id="route-result" class="result-card">
+      <div class="result-placeholder">
+        <div class="placeholder-icon">🗺️</div>
+        <p><strong>Select a route above and click Find Shortest Route</strong></p>
+        <p>The shortest path and total distance will appear here</p>
+      </div>
+    </div>
 
-    <!-- Locations table -->
+    <!-- All Locations -->
     <div>
-      <div class="section-label">// All Locations</div>
-      <div class="locations-grid">
-        <div class="grid-header">
+      <div class="section-title">All Locations</div>
+      <div class="table-wrap">
+        <div class="table-head cols-4">
           <div>ID</div><div>Name</div><div>Type</div><div>Roads</div>
         </div>
         <div id="locations-body">
-          <div style="padding:1.5rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted);">
-            <span class="spinner"></span> Loading locations...
-          </div>
+          <div class="loading-row"><span class="spinner"></span>Loading...</div>
         </div>
       </div>
     </div>
 
-
-    <!-- Unreachable locations -->
+    <!-- Unreachable -->
     <div>
-      <div class="section-label">// Unreachable Customers <span style="color:var(--danger);margin-left:0.5rem" id="unreachable-count"></span></div>
-      <div class="locations-grid">
-        <div class="grid-header">
+      <div class="section-title">
+        Unreachable Customers
+        <span id="unreachable-count" style="color:var(--danger);margin-left:0.5rem;font-weight:400"></span>
+      </div>
+      <div class="table-wrap">
+        <div class="table-head cols-4">
           <div>ID</div><div>Name</div><div>Type</div><div>Roads</div>
         </div>
         <div id="unreachable-body">
-          <div style="padding:1.5rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted);">
-            <span class="spinner"></span> Loading...
-          </div>
+          <div class="loading-row"><span class="spinner"></span>Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delivery Summary -->
+    <div>
+      <div class="section-title">Delivery Summary</div>
+      <div class="table-wrap">
+        <div class="table-head cols-summary">
+          <div>ID</div><div>Customer</div><div>Total</div><div>Last Delivery</div>
+        </div>
+        <div id="summary-body">
+          <div class="loading-row"><span class="spinner"></span>Loading...</div>
         </div>
       </div>
     </div>
@@ -480,65 +634,119 @@
 <!-- Toast -->
 <div class="toast" id="toast">
   <div class="toast-title" id="toast-title"></div>
-  <div id="toast-msg"></div>
+  <div class="toast-msg" id="toast-msg"></div>
 </div>
 
 <script>
   const BASE = 'http://localhost:5000'
   let allLocations = []
 
-  //  Load locations on startup 
+  // ── Load locations ──────────────────────────────────────────────────────────
 
   async function loadLocations() {
-    const res  = await fetch(`${BASE}/locations`)
+    const res = await fetch(`${BASE}/locations`)
     allLocations = await res.json()
 
-    // Populate table
-    const body = document.getElementById('locations-body')
-    body.innerHTML = allLocations.map(loc => `
-      <div class="grid-row" onclick="quickRoute(${loc.id})">
+    // Table
+    document.getElementById('locations-body').innerHTML = allLocations.map(loc => `
+      <div class="table-row cols-4" onclick="quickRoute(${loc.id})">
         <div class="id-cell">${loc.id}</div>
         <div>${loc.name}</div>
         <div><span class="type-tag ${loc.type}">${loc.type}</span></div>
-        <div class="road-count ${loc.road_count === 0 ? 'zero' : ''}">${loc.road_count}</div>
+        <div><span class="road-pill ${loc.road_count === 0 ? 'zero' : ''}">${loc.road_count}</span></div>
       </div>
     `).join('')
 
-    // Populate From/To selects
-    const fromSel     = document.getElementById('sel-from')
-    const toSel       = document.getElementById('sel-to')
-    const customerSel = document.getElementById('del-customer')
+    // Selects
+    const fromSel = document.getElementById('sel-from')
+    const toSel   = document.getElementById('sel-to')
+    const delSel  = document.getElementById('del-customer')
 
-    fromSel.innerHTML     = allLocations.map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`).join('')
-    toSel.innerHTML       = allLocations.map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`).join('')
-    customerSel.innerHTML = allLocations
+    fromSel.innerHTML = allLocations.map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`).join('')
+    toSel.innerHTML   = allLocations.map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`).join('')
+    delSel.innerHTML  = allLocations
       .filter(l => l.type === 'customer')
       .map(l => `<option value="${l.id}">${l.id} — ${l.name}</option>`)
       .join('')
 
-    // Default to depot → first customer
     fromSel.value = allLocations.find(l => l.type === 'depot')?.id || ''
     toSel.value   = allLocations.find(l => l.type === 'customer')?.id || ''
   }
 
-  //  Find route 
+  // ── Load truck plates ───────────────────────────────────────────────────────
+
+  async function loadTruckPlates() {
+    const res    = await fetch(`${BASE}/trucks`)
+    const plates = await res.json()
+    const sel    = document.getElementById('del-plate-select')
+
+    if (plates.length === 0) {
+      sel.innerHTML = '<option value="">No previous plates — enter below</option>'
+    } else {
+      sel.innerHTML = '<option value="">— Select existing plate —</option>' +
+        plates.map(p => `<option value="${p}">${p}</option>`).join('')
+    }
+
+    // When dropdown changes, fill the text input
+    sel.addEventListener('change', () => {
+      if (sel.value) document.getElementById('del-plate-input').value = sel.value
+    })
+  }
+
+  // ── Load unreachable ────────────────────────────────────────────────────────
+
+  async function loadUnreachable() {
+    const res  = await fetch(`${BASE}/locations/unreachable`)
+    const data = await res.json()
+
+    document.getElementById('unreachable-count').textContent = `(${data.length} found)`
+
+    document.getElementById('unreachable-body').innerHTML = data.length === 0
+      ? '<div class="loading-row" style="color:var(--success)">✓ All customers are reachable from the depot.</div>'
+      : data.map(loc => `
+          <div class="table-row cols-4">
+            <div class="id-cell">${loc.id}</div>
+            <div class="danger-text">${loc.name}</div>
+            <div><span class="type-tag customer">${loc.type}</span></div>
+            <div><span class="road-pill">${loc.road_count}</span></div>
+          </div>
+        `).join('')
+  }
+
+  // ── Load summary ────────────────────────────────────────────────────────────
+
+  async function loadSummary() {
+    const res  = await fetch(`${BASE}/deliveries/summary`)
+    const data = await res.json()
+
+    document.getElementById('summary-body').innerHTML = data.map(row => `
+      <div class="table-row cols-summary">
+        <div class="id-cell">${row.customer_id}</div>
+        <div>${row.customer_name}</div>
+        <div><span class="delivery-count ${row.total_deliveries === 0 ? 'zero' : ''}">${row.total_deliveries}</span></div>
+        <div class="date-text">${row.last_delivery_at ?? '—'}</div>
+      </div>
+    `).join('')
+  }
+
+  // ── Find route ──────────────────────────────────────────────────────────────
 
   async function findRoute() {
     const from = document.getElementById('sel-from').value
     const to   = document.getElementById('sel-to').value
     if (!from || !to) return
 
-    const btn = document.querySelector('.btn-find')
-    btn.innerHTML = '<span class="spinner"></span> SEARCHING...'
-    btn.disabled = true
+    const btn = document.querySelector('.btn-primary')
+    btn.innerHTML = '<span class="spinner"></span> Searching...'
+    btn.disabled  = true
 
     const res  = await fetch(`${BASE}/route?from=${from}&to=${to}`)
     const data = await res.json()
 
-    btn.innerHTML = 'FIND SHORTEST ROUTE'
-    btn.disabled = false
+    btn.innerHTML = 'Find Shortest Route'
+    btn.disabled  = false
 
-    renderRouteResult(data)
+    renderRoute(data)
   }
 
   function quickRoute(toId) {
@@ -549,9 +757,8 @@
     findRoute()
   }
 
-  function renderRouteResult(data) {
+  function renderRoute(data) {
     const card = document.getElementById('route-result')
-    card.classList.remove('visible')
 
     if (!data.reachable) {
       card.innerHTML = `
@@ -560,15 +767,17 @@
           <span class="badge unreachable">Unreachable</span>
         </div>
         <div class="result-body">
-          <div class="no-route">⚠ No road path exists from ${data.from.name} to ${data.to.name}.<br/>This customer cannot be served from the depot.</div>
+          <div class="no-route">⚠ No road path exists from <strong>${data.from.name}</strong> to <strong>${data.to.name}</strong>. This customer cannot be served from the depot.</div>
         </div>
       `
     } else {
       const pathHtml = data.path.map((node, i) => {
-        const cls = i === 0 ? 'depot' : i === data.path.length - 1 ? 'endpoint' : ''
-        const arrow = i < data.path.length - 1 ? '<div class="path-arrow" style="animation-delay:' + (i * 0.08) + 's">→</div>' : ''
-        return `<div class="path-node ${cls}" style="animation-delay:${i * 0.08}s">${node.name}</div>${arrow}`
+        const cls   = i === 0 ? 'depot' : i === data.path.length - 1 ? 'endpoint' : ''
+        const arrow = i < data.path.length - 1 ? `<div class="path-arrow" style="animation-delay:${i*0.07}s">→</div>` : ''
+        return `<div class="path-node ${cls}" style="animation-delay:${i*0.07}s">${node.name}</div>${arrow}`
       }).join('')
+
+      const stops = data.path.length - 1
 
       card.innerHTML = `
         <div class="result-header">
@@ -576,22 +785,28 @@
           <span class="badge reachable">Reachable</span>
         </div>
         <div class="result-body">
+          <div class="path-meta">
+            <div>
+              <div class="dist-display">${data.total_distance_km}<span>km</span></div>
+              <div class="path-stops">${stops} stop${stops !== 1 ? 's' : ''} · ${data.path.length} location${data.path.length !== 1 ? 's' : ''}</div>
+            </div>
+          </div>
           <div class="path-display">${pathHtml}</div>
-          <div class="dist-display">${data.total_distance_km}<span>km total</span></div>
         </div>
       `
     }
-
-    requestAnimationFrame(() => card.classList.add('visible'))
   }
 
-  //  Log delivery 
+  // ── Log delivery ────────────────────────────────────────────────────────────
 
   async function logDelivery() {
     const customer_id = parseInt(document.getElementById('del-customer').value)
-    const truck_plate = document.getElementById('del-plate').value.trim()
+    const truck_plate = document.getElementById('del-plate-input').value.trim().toUpperCase()
 
-    if (!truck_plate) { showToast('error', 'Missing Field', 'Please enter a truck plate.'); return }
+    if (!truck_plate) {
+      showToast('error', 'Missing Plate', 'Please select or enter a truck plate.')
+      return
+    }
 
     const res  = await fetch(`${BASE}/deliveries`, {
       method:  'POST',
@@ -601,51 +816,33 @@
     const data = await res.json()
 
     if (res.status === 201) {
-      showToast('success', 'Departure Logged', `Truck ${data.truck_plate} dispatched. Delivery ID: ${data.id}`)
-      document.getElementById('del-plate').value = ''
+      showToast('success', 'Departure Logged', `Truck ${data.truck_plate} dispatched. ID: ${data.id}`)
+      document.getElementById('del-plate-input').value = ''
+      document.getElementById('del-plate-select').value = ''
+      loadTruckPlates()  // refresh dropdown with new plate
+      loadSummary()      // refresh summary
     } else {
       showToast('error', 'Failed', data.error)
     }
   }
 
-  //  Toast helper 
+  // ── Toast ───────────────────────────────────────────────────────────────────
 
   let toastTimer
   function showToast(type, title, msg) {
     const toast = document.getElementById('toast')
-    toast.className = `toast ${type}`
+    toast.className = `toast ${type} show`
     document.getElementById('toast-title').textContent = title
     document.getElementById('toast-msg').textContent   = msg
-    toast.classList.add('show')
     clearTimeout(toastTimer)
     toastTimer = setTimeout(() => toast.classList.remove('show'), 4000)
   }
 
-
-  async function loadUnreachable() {
-    const res  = await fetch(`${BASE}/locations/unreachable`)
-    const data = await res.json()
-
-    document.getElementById('unreachable-count').textContent = `(${data.length} found)`
-
-    const body = document.getElementById('unreachable-body')
-    if (data.length === 0) {
-      body.innerHTML = '<div style="padding:1.5rem; font-family:var(--mono); font-size:0.8rem; color:var(--muted);">All customers are reachable.</div>'
-      return
-    }
-    body.innerHTML = data.map(loc => `
-      <div class="grid-row">
-        <div class="id-cell">${loc.id}</div>
-        <div style="color:var(--danger)">${loc.name}</div>
-        <div><span class="type-tag customer">${loc.type}</span></div>
-        <div class="road-count">${loc.road_count}</div>
-      </div>
-    `).join('')
-  }
-
-  // Init 
+  // ── Init ────────────────────────────────────────────────────────────────────
   loadLocations()
+  loadTruckPlates()
   loadUnreachable()
+  loadSummary()
 </script>
 </body>
 </html>
