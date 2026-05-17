@@ -1,6 +1,4 @@
-# Oil-Dilevery-Dispatch-Pre_assestment-
-
-# API
+# Oil Delivery Dispatch API
 
 A REST API for an oil tanker dispatch system. Given a road network stored in SQLite, it finds the shortest driving route from the depot to any customer and manages delivery records.
 
@@ -26,6 +24,8 @@ oil-dispatch/
 ├── test_all.py         # Full test suite (db, graph, and API tests)
 ├── delivery.db         # Pre-seeded SQLite database
 ├── requirements.txt    # Python dependencies
+├── requests.http       # VS Code REST Client test collection
+├── collection.json     # Postman test collection
 └── templates/
     └── index.html      # Browser dashboard UI
 ```
@@ -40,15 +40,7 @@ oil-dispatch/
 pip install -r requirements.txt
 ```
 
-### 2. Add coordinates to the database (run once)
-
-The database needs lat/lng coordinates for the locations. Run this script once:
-
-```bash
-python add_coords.py
-```
-
-### 3. Start the server
+### 2. Start the server
 
 ```bash
 python app.py
@@ -56,7 +48,7 @@ python app.py
 
 The server will start at `http://localhost:5000`
 
-### 4. Open the dashboard (optional)
+### 3. Open the dashboard (optional)
 
 Visit `http://localhost:5000` in your browser to use the interactive route finder UI.
 
@@ -250,7 +242,7 @@ curl http://localhost:5000/deliveries/summary
 
 ## Running Tests
 
-### Full test suite (no server needed for Task 1–3)
+### Task 1–3 only (no server needed)
 
 ```bash
 python test_all.py
@@ -275,4 +267,3 @@ python test_all.py
 | 1 | The spec says `from` is a valid location of any type. The API allows routing between any two locations (depot-to-depot, customer-to-customer), not just depot-to-customer. Validation only applies to `POST /deliveries`. |
 | 2 | `PATCH /deliveries/<id>/status` only accepts `"arrived"` as the new status. Any other value returns HTTP 422, including `"departed"`. |
 | 3 | `GET /locations/unreachable` returns only customers, not the depot, as the depot is the origin point and routing from the depot to itself is not meaningful. |
-| 4 | The database `lat` and `lng` columns were added via `add_coords.py` using real Malaysian GPS coordinates to support future A\* pathfinding enhancements. |
